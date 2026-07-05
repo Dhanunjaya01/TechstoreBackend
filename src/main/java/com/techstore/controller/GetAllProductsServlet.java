@@ -34,7 +34,7 @@ public class GetAllProductsServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
     	
-    	response.setHeader("Access-Control-Allow-Origin", "https://techstore-store.vercel.app/");
+    	response.setHeader("Access-Control-Allow-Origin", "https://techstore-store.vercel.app");
     	response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     	response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
@@ -77,7 +77,7 @@ public class GetAllProductsServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        response.setHeader("Access-Control-Allow-Origin", "https://techstore-store.vercel.app/");
+        response.setHeader("Access-Control-Allow-Origin", "https://techstore-store.vercel.app");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
         response.setStatus(HttpServletResponse.SC_OK);
