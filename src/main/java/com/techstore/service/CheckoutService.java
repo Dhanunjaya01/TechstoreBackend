@@ -31,99 +31,85 @@ public class CheckoutService {
     }
 
     public boolean checkout(CheckoutRequest request) {
+        
+    	public boolean checkout(CheckoutRequest request) {
 
-        try {
+    	    try {
 
-            Address address = request.getAddress();
+    	        System.out.println("========== CHECKOUT START ==========");
+    	        System.out.println("User ID: " + request.getUserId());
 
-            address.setUserId(request.getUserId());
+    	        Address address = request.getAddress();
 
-            int addressId = addressService.saveAddress(address);
+    	        System.out.println("Saving Address...");
 
-            if (addressId == 0) {
+    	        address.setUserId(request.getUserId());
 
-                return false;
+    	        int addressId = addressService.saveAddress(address);
 
-            }
+    	        System.out.println("Address ID = " + addressId);
 
-            Order order = new Order();
+    	        if (addressId == 0) {
+    	            System.out.println("ADDRESS FAILED");
+    	            return false;
+    	        }
 
-            order.setUserId(request.getUserId());
+    	        Order order = new Order();
 
-            order.setAddressId(addressId);
+    	        order.setUserId(request.getUserId());
+    	        order.setAddressId(addressId);
+    	        order.setOrderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8));
+    	        order.setTotalAmount(BigDecimal.valueOf(request.getTotalAmount()));
+    	        order.setOrderStatus("Order Placed");
+    	        order.setPaymentStatus("Pending");
 
-            order.setOrderNumber(
-                    "ORD-" + UUID.randomUUID().toString().substring(0, 8));
+    	        System.out.println("Placing Order...");
 
-            order.setTotalAmount(
-                    BigDecimal.valueOf(request.getTotalAmount()));
+    	        int orderId = orderService.placeOrder(order);
 
-            order.setOrderStatus("Order Placed");
+    	        System.out.println("Order ID = " + orderId);
 
-            order.setPaymentStatus("Pending");
+    	        if (orderId == 0) {
+    	            System.out.println("ORDER FAILED");
+    	            return false;
+    	        }
 
-            int orderId = orderService.placeOrder(order);
+    	        // Your existing orderItems code...
 
-            if (orderId == 0) {
+    	        System.out.println("Saving Order Items...");
 
-                return false;
+    	        if (!orderItemService.addOrderItems(orderItems)) {
+    	            System.out.println("ORDER ITEMS FAILED");
+    	            return false;
+    	        }
 
-            }
+    	        Payment payment = request.getPayment();
 
-            List<OrderItem> orderItems = new ArrayList<>();
+    	        payment.setOrderId(orderId);
+    	        payment.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 8));
 
-            for (CartItem cartItem : request.getCartItems()) {
+    	        System.out.println("Saving Payment...");
 
-                OrderItem item = new OrderItem();
+    	        if (!paymentService.savePayment(payment)) {
+    	            System.out.println("PAYMENT FAILED");
+    	            return false;
+    	        }
 
-                item.setOrderId(orderId);
+    	        System.out.println("Clearing Cart...");
 
-                item.setProductId(cartItem.getProductId());
+    	        cartService.clearCart(request.getUserId());
 
-                item.setQuantity(cartItem.getQuantity());
+    	        System.out.println("CHECKOUT SUCCESS");
 
-                item.setPrice(
-                        BigDecimal.valueOf(cartItem.getPrice()));
+    	        return true;
 
-                item.setSubtotal(
-                        BigDecimal.valueOf(
-                                cartItem.getPrice() * cartItem.getQuantity()));
+    	    } catch (Exception e) {
 
-                orderItems.add(item);
+    	        e.printStackTrace();
 
-            }
+    	    }
 
-            if (!orderItemService.addOrderItems(orderItems)) {
-
-                return false;
-
-            }
-
-            Payment payment = request.getPayment();
-
-            payment.setOrderId(orderId);
-
-            payment.setTransactionId(
-                    "TXN-" + UUID.randomUUID().toString().substring(0, 8));
-
-            if (!paymentService.savePayment(payment)) {
-
-                return false;
-
-            }
-
-            cartService.clearCart(request.getUserId());
-
-            return true;
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-        }
-
-        return false;
-
-    }
+    	    return false;
+    	}
 
 }
